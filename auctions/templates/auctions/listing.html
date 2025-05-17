@@ -1,0 +1,59 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+{% if winner %}
+  <p style="background-color: darkgreen; color: white">{{winner}}</p>
+{% endif %}
+<h2>Listing: {{listing.title}}</h2>
+<div class="list-group-item" style="display: flex; flex-wrap: wrap; gap: 2rem; margin-bottom: 2rem">
+   <img class="img-responsive item-img lazy" src="{{listing.image_url}}" />
+  <div>
+    <h6>{{listing.title}}
+    {% if listing.current_bid %}
+      <h6>Price: ${{listing.current_bid}}</h6>
+    {% else %}
+      <h6>Price: ${{listing.starting_bid}}</h6>
+    {% endif%}
+    <p>Created {{listing.date}}</p>
+   
+    {% if user.is_authenticated and not winner %}
+    {% if listing.user == user %}
+      <a href="{% url 'close' id=listing.id %}"><button class="btn btn-danger">Close Bid</button></a>
+    {% else %}
+      {% if watchlist%}
+        <a href="{% url 'remove' id=listing.id%}"><button class="btn btn-danger">Remove From Watchlist</button></a>
+      {% else %}
+        <a href="{% url 'add' id=listing.id %}"><button class="btn btn-primary">Add To Watchlist</button></a>
+      {% endif %}
+      <form action="{% url 'bid' id=listing.id %}" method="post">
+        {% csrf_token %}
+        {{bid}}
+        <button type="submit" class="btn btn-primary">Place Bid</button>
+      </form>
+
+    {% endif %}
+    {% endif %}
+    <div>
+      <div>
+        <h3>Details</h3>
+        <p>{{listing.description}}</p>
+      </div>
+      <h6>Comments</h6>
+      <ul>
+      {% for c in comments %}
+        <li>{{c.user}}: {{c.text}}</li>
+      {% endfor%}
+      <ul>
+    </div>
+  </div>
+</div>
+
+{% if user.is_authenticated and not winner %}
+<form method="post" action="{% url 'comment' id=listing.id %}">
+  {% csrf_token %}
+  {{ comment}}
+  <button type="submit" class="btn btn-primary">Add Comment</button>
+</form>
+{% endif %}
+
+{% endblock %}
